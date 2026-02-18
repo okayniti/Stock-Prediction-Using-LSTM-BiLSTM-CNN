@@ -9,6 +9,12 @@ A comprehensive deep learning project that predicts **Apple (AAPL)** stock price
 
 ---
 
+## 🎬 Demo
+
+![Dashboard Demo](Stock%20Prediction%20Dashboard%20-%20AAPL%20-%20Google%20Chrome%202026-02-17%2019-29-13.gif)
+
+---
+
 ## 🎯 Objective
 
 To forecast future stock closing prices by training deep learning models on historical time-series data and evaluate which architecture best captures temporal patterns in financial markets.
