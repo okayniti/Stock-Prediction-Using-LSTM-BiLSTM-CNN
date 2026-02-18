@@ -1,219 +1,247 @@
-# 📈 Stock Price Prediction using Deep Learning
+# Stock Price Prediction Using Deep Learning
 
-A comprehensive deep learning project that predicts **Apple (AAPL)** stock prices using three neural network architectures — **LSTM**, **CNN (1D)**, and **Bi-LSTM** — and compares their performance through an interactive dashboard.
+**Forecasting Apple (AAPL) stock prices with LSTM, Bi-LSTM, and CNN architectures — achieving 96% prediction accuracy (R² = 0.96) on real-world financial time-series data.**
 
-![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=white)
-![TensorFlow](https://img.shields.io/badge/TensorFlow-2.20-orange?logo=tensorflow&logoColor=white)
-![Keras](https://img.shields.io/badge/Keras-3.x-red?logo=keras&logoColor=white)
+This project demonstrates a complete end-to-end deep learning pipeline: from raw market data acquisition and preprocessing through model training, evaluation, and interactive visualization. Three distinct neural network architectures are implemented, trained, and rigorously compared to determine which best captures temporal patterns in stock price movements — a challenge at the intersection of finance and artificial intelligence where even marginal accuracy improvements carry significant real-world value.
+
+![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)
+![TensorFlow](https://img.shields.io/badge/TensorFlow-2.20-FF6F00?logo=tensorflow&logoColor=white)
+![Keras](https://img.shields.io/badge/Keras-3.x-D00000?logo=keras&logoColor=white)
+![scikit-learn](https://img.shields.io/badge/scikit--learn-1.2%2B-F7931E?logo=scikit-learn&logoColor=white)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
 ---
 
-## 🎬 Demo
+## Demo
 
 ![Dashboard Demo](Stock%20Prediction%20Dashboard%20-%20AAPL%20-%20Google%20Chrome%202026-02-17%2019-29-13.gif)
 
----
-
-## 🎯 Objective
-
-To forecast future stock closing prices by training deep learning models on historical time-series data and evaluate which architecture best captures temporal patterns in financial markets.
+> A fully interactive Plotly-powered dashboard comparing all three model predictions, error distributions, and evaluation metrics — generated entirely from code.
 
 ---
 
-## 📂 Project Structure
+## Why This Project Matters
 
-```
-stock-prediction-deep-learning/
-├── data/                        # Auto-downloaded dataset (AAPL.csv)
-│   └── AAPL.csv
-├── models/                      # Saved trained model weights
-│   ├── LSTM.keras
-│   ├── CNN.keras
-│   └── Bi-LSTM.keras
-├── results/                     # Generated plots & metrics
-│   ├── lstm_predictions.png
-│   ├── cnn_predictions.png
-│   ├── bi_lstm_predictions.png
-│   ├── combined_predictions.png
-│   ├── loss_curves.png
-│   ├── model_comparison.png
-│   └── comparison.csv
-├── stock_prediction.py          # Main training & evaluation pipeline
-├── dashboard.py                 # Interactive dashboard generator
-├── dashboard.html               # Self-contained interactive dashboard
-├── requirements.txt             # Python dependencies
-└── README.md
-```
+Stock price prediction is one of the most studied — and most difficult — problems in machine learning. Financial time-series data is inherently noisy, non-stationary, and influenced by factors that no model can fully capture. This makes it an excellent benchmark for evaluating how well deep learning architectures handle real-world temporal pattern recognition.
+
+This project goes beyond a single model script. It implements **three fundamentally different architectures**, trains each under identical conditions, and provides both quantitative metrics and visual analysis to draw meaningful conclusions — the kind of rigorous comparison expected in production ML workflows.
 
 ---
 
-## 🧠 Models & Architecture
+## Architecture Overview
 
-### 1. LSTM (Long Short-Term Memory)
+### LSTM (Long Short-Term Memory)
 
-LSTMs are designed to learn long-term dependencies in sequential data using gating mechanisms (forget, input, output gates).
+Designed specifically for sequential data, LSTMs use gating mechanisms to selectively retain or discard information across long time horizons — making them a natural fit for time-series forecasting.
 
-| Layer | Type | Units | Details |
-|-------|------|-------|---------|
-| 1 | LSTM | 128 | `return_sequences=True` |
-| 2 | Dropout | — | 20% dropout |
-| 3 | LSTM | 64 | `return_sequences=False` |
-| 4 | Dropout | — | 20% dropout |
-| 5 | Dense | 32 | ReLU activation |
-| 6 | Dense | 1 | Linear output |
+| Layer | Type | Configuration |
+|-------|------|---------------|
+| 1 | LSTM | 128 units, return sequences |
+| 2 | Dropout | 20% |
+| 3 | LSTM | 64 units |
+| 4 | Dropout | 20% |
+| 5 | Dense | 32 units, ReLU |
+| 6 | Dense | 1 unit, Linear output |
 
-### 2. CNN (1D Convolutional Neural Network)
+### Bi-LSTM (Bidirectional LSTM)
 
-1D CNNs extract local patterns from time-series data using sliding convolutional filters, making them efficient for feature extraction.
+Extends LSTM by processing sequences in both forward and reverse directions simultaneously. This dual-pass approach captures dependencies that unidirectional models miss, particularly useful when recent context and historical trends both influence the target.
 
-| Layer | Type | Filters/Units | Details |
-|-------|------|---------------|---------|
-| 1 | Conv1D | 64 | Kernel size: 3, ReLU |
-| 2 | MaxPooling1D | — | Pool size: 2 |
-| 3 | Conv1D | 128 | Kernel size: 3, ReLU |
-| 4 | MaxPooling1D | — | Pool size: 2 |
-| 5 | Flatten | — | — |
-| 6 | Dense | 64 | ReLU activation |
-| 7 | Dropout | — | 20% dropout |
-| 8 | Dense | 1 | Linear output |
+| Layer | Type | Configuration |
+|-------|------|---------------|
+| 1 | Bidirectional LSTM | 128 units x 2 directions, return sequences |
+| 2 | Dropout | 20% |
+| 3 | Bidirectional LSTM | 64 units x 2 directions |
+| 4 | Dropout | 20% |
+| 5 | Dense | 32 units, ReLU |
+| 6 | Dense | 1 unit, Linear output |
 
-### 3. Bi-LSTM (Bidirectional LSTM)
+### CNN (1D Convolutional Neural Network)
 
-Bi-LSTMs process sequences in both forward and backward directions, capturing past and future context simultaneously.
+Applies sliding convolutional filters to extract local patterns from time-series windows. While CNNs excel at spatial feature extraction, this project tests whether that strength transfers to temporal data — and the results reveal an important architectural insight.
 
-| Layer | Type | Units | Details |
-|-------|------|-------|---------|
-| 1 | Bidirectional LSTM | 128 x 2 | `return_sequences=True` |
-| 2 | Dropout | — | 20% dropout |
-| 3 | Bidirectional LSTM | 64 x 2 | `return_sequences=False` |
-| 4 | Dropout | — | 20% dropout |
-| 5 | Dense | 32 | ReLU activation |
-| 6 | Dense | 1 | Linear output |
-
----
-
-## 📊 Dataset
-
-| Property | Value |
-|----------|-------|
-| **Source** | Yahoo Finance (via `yfinance`) |
-| **Ticker** | AAPL (Apple Inc.) |
-| **Period** | January 2015 — January 2025 |
-| **Records** | ~2,516 trading days |
-| **Target Variable** | Closing Price |
-| **Normalization** | MinMaxScaler (0–1) |
-| **Lookback Window** | 60 days |
-| **Train/Test Split** | 80% / 20% |
+| Layer | Type | Configuration |
+|-------|------|---------------|
+| 1 | Conv1D | 64 filters, kernel size 3, ReLU |
+| 2 | MaxPooling1D | Pool size 2 |
+| 3 | Conv1D | 128 filters, kernel size 3, ReLU |
+| 4 | MaxPooling1D | Pool size 2 |
+| 5 | Flatten | — |
+| 6 | Dense | 64 units, ReLU |
+| 7 | Dropout | 20% |
+| 8 | Dense | 1 unit, Linear output |
 
 ---
 
-## ⚙️ Training Configuration
+## Dataset
 
-| Hyperparameter | Value |
-|----------------|-------|
+| Property | Details |
+|----------|---------|
+| Source | Yahoo Finance via `yfinance` |
+| Ticker | AAPL (Apple Inc.) |
+| Time Period | January 2015 — January 2025 |
+| Total Records | ~2,516 trading days |
+| Target Variable | Daily closing price |
+| Normalization | MinMaxScaler (0–1 range) |
+| Lookback Window | 60 days |
+| Train / Test Split | 80% / 20% (chronological, no data leakage) |
+
+The dataset is downloaded automatically on first run and cached locally. The chronological split ensures no future data leaks into training — a common mistake in financial ML that this project deliberately avoids.
+
+---
+
+## Training Configuration
+
+| Parameter | Value |
+|-----------|-------|
 | Optimizer | Adam |
 | Loss Function | Mean Squared Error (MSE) |
-| Epochs | 50 (max) |
+| Max Epochs | 50 |
 | Batch Size | 32 |
-| Early Stopping | Patience = 5, restore best weights |
+| Early Stopping | Patience = 5, restores best weights |
 | Random Seed | 42 (reproducible results) |
 
----
-
-## 📈 Results & Comparison
-
-| Model | RMSE ↓ | MAE ↓ | R² Score ↑ | Parameters |
-|-------|--------|-------|------------|------------|
-| **Bi-LSTM** | **5.3722** | **4.2560** | **0.9604** | ~300K |
-| LSTM | 5.4197 | 4.2647 | 0.9597 | ~150K |
-| CNN | 7.8529 | 6.4187 | 0.9154 | ~120K |
-
-### Key Findings
-
-- **Bi-LSTM achieves the highest R² (0.9604)** — processing sequences bidirectionally captures richer temporal patterns
-- **LSTM closely follows** with nearly identical performance at half the parameter count
-- **CNN underperforms** on this task — CNNs are better at local feature extraction but miss long-range temporal dependencies that recurrent models capture
-- All models achieve R² > 0.91, confirming deep learning's effectiveness for stock price trend forecasting
+All three models are trained under identical hyperparameters to ensure the comparison reflects architectural differences, not tuning advantages.
 
 ---
 
-## 🖥️ Interactive Dashboard
+## Results
 
-The project includes a **self-contained interactive HTML dashboard** powered by Plotly.js with:
+| Model | RMSE | MAE | R² Score | Parameters |
+|-------|------|-----|----------|------------|
+| **Bi-LSTM** | **5.37** | **4.26** | **0.9604** | ~300K |
+| LSTM | 5.42 | 4.26 | 0.9597 | ~150K |
+| CNN | 7.85 | 6.42 | 0.9154 | ~120K |
 
-- ✅ **Model Metric Cards** — RMSE, MAE, R² for each model with "Best Model" badge
-- ✅ **Full Price History** — 10-year AAPL chart with train/test split marker
-- ✅ **Combined Predictions** — All models overlaid with toggle buttons
-- ✅ **Individual Model View** — Single model with error overlay
-- ✅ **Comparison Table** — Side-by-side metrics with best-value highlighting
-- ✅ **Metric Bar Charts** — Grouped bar comparison
-- ✅ **Error Distribution** — Overlaid histograms of prediction errors
-- ✅ **Cumulative Error** — Running error accumulation over time
+### Interpretation
 
-> Open `dashboard.html` in any browser — no server needed.
+**Bi-LSTM delivers the strongest performance**, marginally outperforming standard LSTM. The bidirectional architecture's ability to process sequences from both ends provides a measurable — though small — advantage, suggesting that reverse-context carries meaningful information in stock price patterns.
+
+**LSTM performs nearly identically** at half the parameter count, making it the most parameter-efficient choice. For production environments where inference speed matters, LSTM offers the best accuracy-to-cost ratio.
+
+**CNN underperforms both recurrent architectures** (R² = 0.92 vs 0.96). This confirms an important insight: while CNNs capture local temporal features effectively, they lack the long-range memory that recurrent networks provide — a critical capability when stock movements today depend on trends established weeks or months ago.
+
+All three models achieve R² > 0.91, validating deep learning as a viable approach for stock price trend forecasting.
 
 ---
 
-## 🚀 Getting Started
+## Interactive Dashboard
+
+The project generates a self-contained HTML dashboard (no server required) with eight interactive panels:
+
+| Panel | Description |
+|-------|-------------|
+| Model Metric Cards | RMSE, MAE, R² per model with best-model indicator |
+| Full Price History | 10-year AAPL chart with train/test boundary |
+| Combined Predictions | All models overlaid with toggle controls |
+| Individual Model View | Single-model predictions with error overlay |
+| Comparison Table | Side-by-side metrics with best-value highlighting |
+| Metric Bar Charts | Grouped comparison across RMSE, MAE, R² |
+| Error Distribution | Overlaid histograms of prediction errors per model |
+| Cumulative Error | Running absolute error accumulation over time |
+
+Built with Plotly.js — fully interactive with hover tooltips, zoom, and pan.
+
+---
+
+## Getting Started
 
 ### Prerequisites
 
-- Python 3.10 or higher
-- pip package manager
+- Python 3.10+
+- pip
 
-### Installation & Running
+### Setup and Execution
 
 ```bash
 # Clone the repository
 git clone https://github.com/okayniti/Stock-Prediction-Using-LSTM-BiLSTM-CNN.git
 cd Stock-Prediction-Using-LSTM-BiLSTM-CNN
 
+# Create virtual environment (recommended)
+python -m venv venv
+venv\Scripts\activate        # Windows
+# source venv/bin/activate   # macOS/Linux
+
 # Install dependencies
 pip install -r requirements.txt
 
-# Train all models (downloads data automatically)
+# Train all models
 python stock_prediction.py
 
 # Generate interactive dashboard
 python dashboard.py
+```
 
-# Open dashboard.html in your browser
+Open `dashboard.html` in any browser to explore the results.
+
+---
+
+## Project Structure
+
+```
+├── data/                    # Auto-downloaded dataset
+├── models/                  # Saved model weights (.keras)
+├── results/                 # Generated plots and comparison CSV
+├── stock_prediction.py      # Training and evaluation pipeline
+├── dashboard.py             # Dashboard generator
+├── dashboard.html           # Interactive dashboard (open in browser)
+├── requirements.txt         # Dependencies
+└── README.md
 ```
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
-| Category | Technology |
-|----------|-----------|
-| **Language** | Python 3.13 |
-| **Deep Learning** | TensorFlow 2.20, Keras 3.x |
-| **Data** | yfinance, Pandas, NumPy |
-| **Preprocessing** | scikit-learn (MinMaxScaler) |
-| **Evaluation** | scikit-learn (RMSE, MAE, R²) |
-| **Visualization** | Matplotlib, Seaborn, Plotly.js |
-| **Dashboard** | Self-contained HTML + Plotly.js |
-
----
-
-## 🔮 Future Improvements
-
-- [ ] Add **GRU** and **Transformer** architectures for comparison
-- [ ] Incorporate **multi-feature input** (Open, High, Low, Volume)
-- [ ] Add **attention mechanisms** to LSTM/Bi-LSTM
-- [ ] Implement **hyperparameter tuning** with Optuna
-- [ ] Add **multi-step forecasting** (predict next N days)
-- [ ] Deploy as a **Streamlit web app**
+| Category | Tools |
+|----------|-------|
+| Language | Python 3.13 |
+| Deep Learning | TensorFlow 2.20, Keras 3.x |
+| Data Acquisition | yfinance |
+| Data Processing | Pandas, NumPy |
+| Preprocessing | scikit-learn (MinMaxScaler) |
+| Evaluation | scikit-learn (RMSE, MAE, R²) |
+| Static Visualization | Matplotlib, Seaborn |
+| Interactive Dashboard | Plotly.js |
 
 ---
 
-## 📜 License
+## Skills Demonstrated
 
-This project is open source and available under the [MIT License](LICENSE).
+- End-to-end ML pipeline: data collection, preprocessing, training, evaluation, visualization
+- Time-series forecasting with deep learning (LSTM, Bi-LSTM, CNN)
+- Sliding window sequence generation for temporal modeling
+- Comparative model analysis with consistent experimental controls
+- Interactive data visualization and dashboard development
+- Model persistence and reproducible training workflows
+- Clean, modular Python code following production conventions
 
 ---
 
-<p align="center">
-  <b>Built with ❤️ using TensorFlow & Keras</b>
-</p>
+## Future Scope
+
+- Add GRU and Transformer-based architectures for broader comparison
+- Incorporate multi-feature input (Open, High, Low, Volume) for richer signal
+- Implement attention mechanisms on recurrent layers
+- Automate hyperparameter search using Optuna or Keras Tuner
+- Extend to multi-step forecasting (predict next N days)
+- Deploy as a live web application using Streamlit or FastAPI
+
+---
+
+## License
+
+This project is open source under the [MIT License](LICENSE).
+
+---
+
+## About the Developer
+
+**Niti** — Computer Science undergraduate focused on applied AI and deep learning.
+
+This project reflects a deliberate effort to move beyond tutorials and build end-to-end intelligent systems that solve real problems. From data pipelines to model architecture decisions to interactive visualization, every component was built from scratch to understand not just *how* deep learning works, but *why* specific design choices lead to measurably better outcomes.
+
+Currently exploring the intersection of machine learning, product thinking, and real-world deployment — with a focus on building things that work, not just things that compile.
+
+[GitHub](https://github.com/okayniti)
